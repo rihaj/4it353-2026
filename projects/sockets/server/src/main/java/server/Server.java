@@ -31,18 +31,57 @@ public class Server
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
             PrintWriter pw = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
 
-            // Donekonečna čeká na příchozí zprávy, vypisuje je na konzoli a odpovídá 'OK'
-            while (true) {
-                // Čeká na zprávu, kterou vypíše do konzole
-                log.debug("Waiting for message.");
-                System.out.println(br.readLine());
+            // Příznak, zda se budou dále přijímat a zpracovávat zprávy
+            boolean keepAlive = true;
 
-                // Odešle odpověď
-                log.debug("Sending response.");
-                pw.println("OK");
+            // Aktuálně nastavené jméno uživatele
+            String username = null;
+
+            while (keepAlive) {
+                // Zpracuje příchozí zprávu (rozdělí řídící slovo a případný obsah)
+                log.debug("Waiting for message.");
+                String[] parts = br.readLine().split(" ", 2);
+                String command = parts[0];
+                String message = parts.length > 1 ? parts[1] : null;
+
+                if ("Q".equals(command) || "QUIT".equals(command))
+                {
+                    // Pokud klient poslal QUIT, jedná se o poslední zprávu
+                    log.info("Terminating communication.");
+                    keepAlive = false;
+                    pw.println("OK");
+                }
+                else if ("U".equals(command) || "USER".equals(command))
+                {
+                    // Pokud klient poslal USER, nastavíme jméno (nesmí ale být prázdné)
+                    if (message == null || message.isBlank()) {
+                        pw.println("ERR Empty username.");
+                    } else {
+                        username = message;
+                        pw.println("OK");
+                    }
+                }
+                else if ("M".equals(command) || "MESSAGE".equals(command))
+                {
+                    // Pokud klient poslal MESSAGE, vypíšeme zprávu na konzoli (musí ale být nastavené jméno)
+                    if (username == null) {
+                        pw.println("ERR Username not set.");
+                    } else {
+                        System.out.println(username + ": " + message);
+                        pw.println("OK");
+                    }
+                }
+                else
+                {
+                    // Pokud klient poslal něco jiného, neumíme to zpracovat
+                    log.warn("Received unprocessable message: {} {}", command, message);
+                    pw.println("ERR Unknown command.");
+                }
             }
         } catch (IOException e) {
             log.error("Error occurred in network communication.", e);
         }
+
+        log.info("Server stopped.");
     }
 }
