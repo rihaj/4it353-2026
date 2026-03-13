@@ -31,13 +31,16 @@ public class Server
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
             PrintWriter pw = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
 
-            // Čeká na zprávu, kterou vypíše do konzole
-            log.debug("Waiting for message.");
-            System.out.println(br.readLine());
+            // Donekonečna čeká na příchozí zprávy, vypisuje je na konzoli a odpovídá 'OK'
+            while (true) {
+                // Čeká na zprávu, kterou vypíše do konzole
+                log.debug("Waiting for message.");
+                System.out.println(br.readLine());
 
-            // Odešle odpověď
-            log.debug("Sending response.");
-            pw.println("The server!");
+                // Odešle odpověď
+                log.debug("Sending response.");
+                pw.println("OK");
+            }
         } catch (IOException e) {
             log.error("Error occurred in network communication.", e);
         }
