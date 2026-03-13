@@ -15,10 +15,11 @@ public class Client
     {
         log.info("Client started.");
 
+        Socket socket = null;
         try {
             // Vytvoří socket a pokusí se navázat síťové spojení se serverem
             log.debug("Creating socket.");
-            Socket socket = new Socket("127.0.0.1", 8080);
+            socket = new Socket("127.0.0.1", 8080);
 
             // Získá a vhodně obalí streamy pro příjem a odesílání dat, pro převod mezi byty a znaky se používá kodování UTF-8
             log.debug("Preparing streams.");
@@ -34,6 +35,19 @@ public class Client
             System.out.println(br.readLine());
         } catch (IOException e) {
             log.error("Error occurred in network communication.", e);
+        } finally {
+            if (socket == null) {
+                log.debug("Socket was not created, no need to close it.");
+            } else {
+                try {
+                    // Pokud bylo spojení navázáno, pokusí se ho uzavřít
+                    log.debug("Closing socket.");
+                    socket.close();
+                } catch (IOException ee) {
+                    // I při uzavírání spojení může samozřejmě dojít k výjimce
+                    log.debug("Error occurred while closing socket can be ignored.", ee);
+                }
+            }
         }
     }
 }

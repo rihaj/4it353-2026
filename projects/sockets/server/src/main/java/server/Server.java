@@ -19,15 +19,12 @@ public class Server
     {
         log.info("Server started.");
 
-        try {
-            // Vytvoří server-socket pro příjem požadavků o síťové spojení
-            log.debug("Creating server-socket.");
-            ServerSocket serverSocket = new ServerSocket(8080);
-
-            // Aktivně čeká na příchozí požadavek o spojení (aplikace na tomto
-            // řádku čeká, dokud spojení není navázáno)
-            log.debug("Waiting for the first connection.");
-            Socket socket = serverSocket.accept();
+        // Vytvoří server-socket pro příjem požadavků o síťové spojení
+        // a aktivně čeká na příchozí požadavek o spojení (aplikace zde
+        // čeká, dokud spojení není navázáno)
+        log.debug("Creating server-socket and waiting for the first connection.");
+        try (ServerSocket serverSocket = new ServerSocket(8080);
+             Socket socket = serverSocket.accept()) {
 
             // Získá a vhodně obalí streamy pro příjem a odesílání dat, pro převod mezi byty a znaky se používá kodování UTF-8
             log.debug("Preparing streams.");
