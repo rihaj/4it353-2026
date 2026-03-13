@@ -1,11 +1,11 @@
 package client;
 
+import api.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class Client
@@ -22,10 +22,10 @@ public class Client
         try (Scanner scanner = new Scanner(System.in);
              Socket socket = new Socket("127.0.0.1", 8080)) {
 
-            // Získá a vhodně obalí streamy pro příjem a odesílání dat, pro převod mezi byty a znaky se používá kodování UTF-8
+            // Získá a vhodně obalí streamy pro příjem a odesílání serializovaných objektů
             log.debug("Preparing streams.");
-            BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-            PrintWriter pw = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
             // Příznak, zda se budou dále načítat a odesílat zprávy
             boolean keepAlive = true;
@@ -42,15 +42,20 @@ public class Client
                 }
 
                 // Odešle zprávu
-                log.debug("Sending message: {}", data);
-                pw.println(data);
+                log.debug("Serializing and sending message: {}", data);
+                Message message = new Message(data);
+                oos.writeObject(message);
 
                 // Čeká na odpověď, kterou vypíše do konzole
                 log.debug("Waiting for response.");
-                System.out.println(br.readLine());
+
+                Message response = (Message) ois.readObject();
+                System.out.println(response.getTimestamp() + ": " + response.getBody());
             }
         } catch (IOException e) {
             log.error("Error occurred in network communication.", e);
+        } catch (ClassNotFoundException e) {
+            log.error("Error occurred while deserializing incoming message.", e);
         }
 
         log.info("Client stopped.");

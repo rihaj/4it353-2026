@@ -1,15 +1,12 @@
 package server;
 
+import api.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
 public class Server
 {
@@ -26,10 +23,10 @@ public class Server
         try (ServerSocket serverSocket = new ServerSocket(8080);
              Socket socket = serverSocket.accept()) {
 
-            // Získá a vhodně obalí streamy pro příjem a odesílání dat, pro převod mezi byty a znaky se používá kodování UTF-8
+            // Získá a vhodně obalí streamy pro příjem a odesílání serializovaných objektů
             log.debug("Preparing streams.");
-            BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-            PrintWriter pw = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
             // Příznak, zda se budou dále přijímat a zpracovávat zprávy
             boolean keepAlive = true;
@@ -40,7 +37,9 @@ public class Server
             while (keepAlive) {
                 // Zpracuje příchozí zprávu (rozdělí řídící slovo a případný obsah)
                 log.debug("Waiting for message.");
-                String[] parts = br.readLine().split(" ", 2);
+                Message m = (Message) ois.readObject();
+
+                String[] parts = m.getBody().split(" ", 2);
                 String command = parts[0];
                 String message = parts.length > 1 ? parts[1] : null;
 
@@ -49,37 +48,39 @@ public class Server
                     // Pokud klient poslal QUIT, jedná se o poslední zprávu
                     log.info("Terminating communication.");
                     keepAlive = false;
-                    pw.println("OK");
+                    oos.writeObject(new Message("OK"));
                 }
                 else if ("U".equals(command) || "USER".equals(command))
                 {
                     // Pokud klient poslal USER, nastavíme jméno (nesmí ale být prázdné)
                     if (message == null || message.isBlank()) {
-                        pw.println("ERR Empty username.");
+                        oos.writeObject(new Message("ERR Empty username."));
                     } else {
                         username = message;
-                        pw.println("OK");
+                        oos.writeObject(new Message("OK"));
                     }
                 }
                 else if ("M".equals(command) || "MESSAGE".equals(command))
                 {
                     // Pokud klient poslal MESSAGE, vypíšeme zprávu na konzoli (musí ale být nastavené jméno)
                     if (username == null) {
-                        pw.println("ERR Username not set.");
+                        oos.writeObject(new Message("ERR Username not set."));
                     } else {
-                        System.out.println(username + ": " + message);
-                        pw.println("OK");
+                        System.out.println(m.getTimestamp() + " " + username + ": " + message);
+                        oos.writeObject(new Message("OK"));
                     }
                 }
                 else
                 {
                     // Pokud klient poslal něco jiného, neumíme to zpracovat
                     log.warn("Received unprocessable message: {} {}", command, message);
-                    pw.println("ERR Unknown command.");
+                    oos.writeObject(new Message("ERR Unknown command."));
                 }
             }
         } catch (IOException e) {
             log.error("Error occurred in network communication.", e);
+        } catch (ClassNotFoundException e) {
+            log.error("Error occurred while deserializing incoming message.", e);
         }
 
         log.info("Server stopped.");
