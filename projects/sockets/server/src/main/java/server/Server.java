@@ -3,8 +3,13 @@ package server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class Server
 {
@@ -16,11 +21,26 @@ public class Server
 
         try {
             // Vytvoří server-socket pro příjem požadavků o síťové spojení
+            log.debug("Creating server-socket.");
             ServerSocket serverSocket = new ServerSocket(8080);
 
             // Aktivně čeká na příchozí požadavek o spojení (aplikace na tomto
             // řádku čeká, dokud spojení není navázáno)
-            serverSocket.accept();
+            log.debug("Waiting for the first connection.");
+            Socket socket = serverSocket.accept();
+
+            // Získá a vhodně obalí streamy pro příjem a odesílání dat, pro převod mezi byty a znaky se používá kodování UTF-8
+            log.debug("Preparing streams.");
+            BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+            PrintWriter pw = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
+
+            // Čeká na zprávu, kterou vypíše do konzole
+            log.debug("Waiting for message.");
+            System.out.println(br.readLine());
+
+            // Odešle odpověď
+            log.debug("Sending response.");
+            pw.println("The server!");
         } catch (IOException e) {
             log.error("Error occurred in network communication.", e);
         }
