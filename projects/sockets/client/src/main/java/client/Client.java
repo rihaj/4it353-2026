@@ -27,11 +27,19 @@ public class Client
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
             PrintWriter pw = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
 
-            // Donekonečna načítá a odesílá zprávy zadané do konzole
-            while (true) {
+            // Příznak, zda se budou dále načítat a odesílat zprávy
+            boolean keepAlive = true;
+
+            while (keepAlive) {
                 // Načte zprávu z konzole
                 log.debug("Waiting for user input.");
                 String data = scanner.nextLine();
+
+                // Pokud klient zadal QUIT, jedná se o poslední zprávu
+                if ("Q".equals(data) || "QUIT".equals(data)) {
+                    log.info("Terminating communication.");
+                    keepAlive = false;
+                }
 
                 // Odešle zprávu
                 log.debug("Sending message: {}", data);
@@ -44,5 +52,7 @@ public class Client
         } catch (IOException e) {
             log.error("Error occurred in network communication.", e);
         }
+
+        log.info("Client stopped.");
     }
 }
