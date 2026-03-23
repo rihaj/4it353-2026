@@ -10,6 +10,8 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Server
 {
@@ -19,11 +21,16 @@ public class Server
     {
         log.info("Server started.");
 
+        Set<Connection> connections = new HashSet<>();
+
         try (ServerSocket serverSocket = new ServerSocket(8080)) {
             while (true) {
                 Socket socket = serverSocket.accept();
 
-                Thread thread = new Thread(new Connection(socket));
+                Connection connection = new Connection(socket, connections);
+                connections.add(connection);
+
+                Thread thread = new Thread(connection);
                 thread.start();
             }
         } catch (IOException e) {

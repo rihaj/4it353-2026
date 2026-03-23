@@ -9,15 +9,37 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Connection implements Runnable
 {
     private static final Logger log = LoggerFactory.getLogger(Connection.class);
 
     private Socket socket;
+    private Set<Connection> connections;
 
-    public Connection(Socket socket) {
+    private BufferedReader br;
+    private PrintWriter pw;
+
+    public Connection(Socket socket, Set<Connection> connections) {
         this.socket = socket;
+        this.connections = connections;
+
+        try {
+            br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+            pw = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            try {
+                socket.close();
+            } catch (IOException ex) {
+                log.error("Error occurred while initializing connection.", e);
+            }
+        }
+    }
+
+    public void sendMessage(String message) {
+        pw.println(message);
     }
 
     @Override
@@ -25,16 +47,19 @@ public class Connection implements Runnable
         log.info("Handling connection: {}.", socket.toString());
 
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-            PrintWriter pw = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
-
             while (true) {
-                System.out.println(br.readLine());
-                pw.println("OK");
+                String message = br.readLine();
+
+                System.out.println(message);
+
+                for (Connection c : connections) {
+                    c.sendMessage(message);
+                }
             }
         } catch (IOException e) {
             log.error("Error occurred in network communication.", e);
         } finally {
+            connections.remove(this);
             if (socket != null) {
                 try {
                     socket.close();
