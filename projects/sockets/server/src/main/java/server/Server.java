@@ -18,5 +18,21 @@ public class Server
     public static void main(String[] args)
     {
         log.info("Server started.");
+
+        try (ServerSocket serverSocket = new ServerSocket(8080)) {
+            while (true) {
+                Socket socket = serverSocket.accept();
+
+                Thread thread = new Thread(() -> {
+                    log.info("Connection established. Socket will be processed in new thread:\n{}", socket.toString());
+                });
+
+                thread.start();
+            }
+        } catch (IOException e) {
+            log.error("Error occurred in network communication.", e);
+        }
+
+        log.info("Server terminated.");
     }
 }
