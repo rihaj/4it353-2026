@@ -23,10 +23,7 @@ public class Server
             while (true) {
                 Socket socket = serverSocket.accept();
 
-                Thread thread = new Thread(() -> {
-                    log.info("Connection established. Socket will be processed in new thread:\n{}", socket.toString());
-                });
-
+                Thread thread = new Thread(new Connection(socket));
                 thread.start();
             }
         } catch (IOException e) {
