@@ -50,14 +50,14 @@ public class Connection implements Runnable
 
                 System.out.println(message);
 
-                synchronized (Server.MESSAGES) {
-                    Server.MESSAGES.add(message);
-                }
+                Server.MESSAGES.put(message);
 
                 log.debug("Message added to sender queue.");
             }
         } catch (IOException e) {
             log.error("Error occurred in network communication.", e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } finally {
             synchronized (Server.CONNECTIONS) {
                 Server.CONNECTIONS.remove(this);

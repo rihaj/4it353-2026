@@ -9,13 +9,16 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class Server
 {
     private static final Logger log = LoggerFactory.getLogger(Server.class);
 
     public static final Set<Connection> CONNECTIONS = new HashSet<>();
-    public static final ArrayList<String> MESSAGES = new ArrayList<>();
+    public static final LinkedBlockingQueue<String> MESSAGES = new LinkedBlockingQueue<>();
 
     public static void main(String[] args)
     {
@@ -25,14 +28,15 @@ public class Server
             log.info("Sender started.");
 
             while (true) {
-                synchronized (MESSAGES) {
-                    if (!MESSAGES.isEmpty()) {
-                        String message = MESSAGES.removeFirst();
+                String message = null;
+                try {
+                    message = MESSAGES.take();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
 
-                        for (Connection c : CONNECTIONS) {
-                            c.sendMessage(message);
-                        }
-                    }
+                for (Connection c : CONNECTIONS) {
+                    c.sendMessage(message);
                 }
             }
 
