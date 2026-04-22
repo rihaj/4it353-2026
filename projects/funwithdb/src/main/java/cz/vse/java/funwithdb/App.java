@@ -1,4 +1,4 @@
-package cz.vse.java.funwithjdbc;
+package cz.vse.java.funwithdb;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,4 +9,5 @@ public class App {
     public static void main(String[] args) {
 
     }
+
 }
