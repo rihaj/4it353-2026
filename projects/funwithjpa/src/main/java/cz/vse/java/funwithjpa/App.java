@@ -1,4 +1,4 @@
-package cz.vse.java.funwithdb;
+package cz.vse.java.funwithjpa;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

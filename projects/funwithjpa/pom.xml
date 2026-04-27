@@ -3,8 +3,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>cz.rihaj.courses.4it353.2026.lab08</groupId>
-    <artifactId>fun-with-jdbc</artifactId>
+    <groupId>cz.rihaj.courses.4it353.2026.lab09</groupId>
+    <artifactId>fun-with-jpa</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
@@ -17,6 +17,12 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>2.4.240</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>5.6.15.Final</version>
         </dependency>
 
         <dependency>
