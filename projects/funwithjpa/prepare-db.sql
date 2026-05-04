@@ -16,7 +16,8 @@ create table USERS (
   DATE_OF_BIRTH date not null,
   BALANCE decimal(10, 2) not null default 0,
   PHOTO blob,
-  LAST_LOGIN timestamp
+  LAST_LOGIN timestamp,
+  VERSION int not null default 0
 );
 
 alter table USERS add constraint USER_PK
@@ -25,7 +26,7 @@ alter table USERS add constraint USER_PK
 
 create table ITEM (
   ID bigint auto_increment not null,
-  SELLER_ID bigint,
+  SELLER_ID bigint not null,
   STATE varchar not null,
   TITLE varchar not null,
   DESCRIPTION varchar,
