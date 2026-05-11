@@ -11,7 +11,7 @@
 
         <properties>
             <property name="javax.persistence.jdbc.url"
-                      value="jdbc:h2:tcp://localhost:9092/h2db;SCHEMA=APP" />
+                      value="jdbc:h2:tcp://localhost:9092/h2db-2;SCHEMA=ONE_TABLE" />
 
             <property name="javax.persistence.jdbc.user" value="APP_USER" />
             <property name="javax.persistence.jdbc.password" value="APP_USER" />
